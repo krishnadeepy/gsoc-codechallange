@@ -21,8 +21,11 @@
 
 
 
-    <script src="./openseadragon/openseadragon.min.js"></script>
-    <script src="./openseadragon/openseadragon-scalebar.js"></script>
+    <script src="{{ url_for('static', filename='openseadragon/openseadragon.min.js') }}"></script>
+
+    <script src="{{ url_for('static', filename='openseadragon/openseadragon-scalebar.js') }}"></script>
+
+
     <div class="row" style="display:grid;grid-template-columns: 1fr 1fr;width: 100%;">
         <div id="v1" style="width: 600px; height: 381px;justify-self: center; border-style: solid" class="column"></div>
         <div id="v2" style="width: 600px; height: 381px;justify-self: center; border-style: solid" class="column"></div>
@@ -39,8 +42,8 @@
             }
             var v1 = OpenSeadragon({
                 id: "v1",
-                prefixUrl: "/openseadragon/images/",
-                tileSources: "images/1/outdir.dzi",
+                prefixUrl: "{{ url_for('static', filename='/openseadragon/images/') }}",
+                tileSources: "{{ url_for('static', filename='images/1/outdir.dzi') }}",
                 degrees: 0,
                 showRotationControl: true,
                 getstureSettingsTouch: {
@@ -49,8 +52,8 @@
             });
             var v2 = OpenSeadragon({
                 id: "v2",
-                prefixUrl: "/openseadragon/images/",
-                tileSources: "images/1/outdir.dzi",
+                prefixUrl: "{{ url_for('static', filename='/openseadragon/images/') }}",
+                tileSources: "{{ url_for('static', filename='images/1/outdir.dzi') }}",
                 degrees: 0,
                 showRotationControl: true,
                 getstureSettingsTouch: {
