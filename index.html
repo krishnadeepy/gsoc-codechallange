@@ -1,0 +1,189 @@
+<html>
+
+<head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <title>GSOC Code Challange</title>
+    <!-- <script src="script.js"></script>  
+    /home/kmit/Documents/dump/gsoc/index.html
+-->
+</head>
+
+<body>
+    <h1 style="text-align:center">Image Sync up with OpenSeaDragon</h1>
+    <br><br><br>
+
+    <input type="radio" name="option" style="margin: 10px" onclick="init()" checked="checked">Independent</input>
+    <input type="radio" name="option" style="margin: 10px" onclick="init()">Sync</input> <br>
+    <script>
+        document.getElementsByName("option")[0].checked = true;
+    </script>
+
+
+
+    <script src="./openseadragon/openseadragon.min.js"></script>
+    <script src="./openseadragon/openseadragon-scalebar.js"></script>
+    <div class="row" style="display:grid;grid-template-columns: 1fr 1fr;width: 100%;">
+        <div id="v1" style="width: 600px; height: 381px;justify-self: center; border-style: solid" class="column"></div>
+        <div id="v2" style="width: 600px; height: 381px;justify-self: center; border-style: solid" class="column"></div>
+        <script type="text/javascript">
+            function init() {
+                if (document.getElementsByName('option')[1].checked === true) {
+                    oldV1ZoomVal = v1.viewport.getZoom();
+                    oldV2ZoomVal = v2.viewport.getZoom()
+                    oldV1RotaVal = v1.viewport.getRotation();
+                    oldV2RotaVal = v2.viewport.getRotation();
+                    oldV1PanaVal = v1.viewport.getCenter();
+                    oldV2PanaVal = v2.viewport.getCenter();
+                }
+            }
+            var v1 = OpenSeadragon({
+                id: "v1",
+                prefixUrl: "./openseadragon/images/",
+                tileSources: "images/1/outdir.dzi",
+                degrees: 0,
+                showRotationControl: true,
+                getstureSettingsTouch: {
+                    pinchRotate: true
+                }
+            });
+            var v2 = OpenSeadragon({
+                id: "v2",
+                prefixUrl: "./openseadragon/images/",
+                tileSources: "images/1/outdir.dzi",
+                degrees: 0,
+                showRotationControl: true,
+                getstureSettingsTouch: {
+                    pinchRotate: true
+                }
+            });
+
+            let lStack = false;
+            let rStack = false;
+
+            v1.scalebar({
+                minWidth: 10,
+                pixelsPerMeter: 15000000,
+            });
+
+            v2.scalebar({
+                minWidth: 10,
+                pixelsPerMeter: 15000000,
+            });
+
+            v1.addHandler('zoom', function(event) {
+                if (lStack) return;
+                if (document.getElementsByName('option')[1].checked === true) {
+                    lStack = true;
+                    v2.viewport.zoomTo((v1.viewport.getZoom() / oldV1ZoomVal) * oldV2ZoomVal);
+                    lStack = false;
+                }
+            });
+
+            v2.addHandler('zoom', function(event) {
+                /* if (rStack) return; */
+                if (document.getElementsByName('option')[1].checked === true) {
+                    rStack = true;
+                    v1.viewport.zoomTo((v2.viewport.getZoom() / oldV2ZoomVal) * oldV1ZoomVal);
+                    rStack = false;
+                }
+            });
+
+            v1.addHandler('home', function(event) {
+                if (lStack) return;
+                if (document.getElementsByName('option')[1].checked === true) {
+                    lStack = true;
+                    v2.viewport.goHome(true);
+                    lStack = false;
+                }
+            });
+
+            v2.addHandler('home', function(event) {
+                if (rStack) return;
+                if (document.getElementsByName('option')[1].checked === true) {
+                    rStack = true;
+                    v1.viewport.goHome(true);
+                    rStack = false;
+                }
+            });
+
+            v1.addHandler('rotate', function(event) {
+                if (lStack) return;
+                if (document.getElementsByName('option')[1].checked === true) {
+                    lStack = true;
+                    v2.viewport.setRotation(v1.viewport.getRotation());
+                    lStack = false;
+                }
+            });
+
+            v2.addHandler('rotate', function(event) {
+                /* if (rStack) return; */
+                if (document.getElementsByName('option')[1].checked === true) {
+                    rStack = true;
+                    v1.viewport.setRotation(v2.viewport.getRotation());
+                    rStack = false;
+                }
+            });
+
+            v1.addHandler('pan', function(event) {
+
+                if (document.getElementsByName('option')[1].checked === true) {
+                    lStack = true;
+
+                    dX = v1.viewport.getCenter().x - oldV1PanaVal.x;
+                    dY = v1.viewport.getCenter().y - oldV1PanaVal.y;
+                    let dPoint = new OpenSeadragon.Point(dX, dY).rotate(
+                        v1.viewport.getRotation() - v2.viewport.getRotation()
+                    );
+
+                    let pos = new OpenSeadragon.Point(
+                        oldV1PanaVal.x + dPoint.x,
+                        oldV1PanaVal.y + dPoint.y
+                    );
+
+                    v2.viewport.panTo(pos);
+                    lStack = false;
+                }
+            });
+
+            v2.addHandler('pan', function(event) {
+                if (rStack) return;
+                if (document.getElementsByName('option')[1].checked === true) {
+                    rStack = true;
+
+                    dX = v2.viewport.getCenter().x - oldV2PanaVal.x;
+                    dY = v2.viewport.getCenter().y - oldV2PanaVal.y;
+                    let dPoint = new OpenSeadragon.Point(dX, dY).rotate(
+                        v1.viewport.getRotation() - v2.viewport.getRotation()
+                    );
+
+                    let pos = new OpenSeadragon.Point(
+                        oldV2PanaVal.x + dPoint.x,
+                        oldV2PanaVal.y + dPoint.y
+                    );
+
+                    v1.viewport.panTo(pos);
+                    lStack = false;
+                }
+            });
+        </script>
+    </div>
+
+    <h3>Things can be synchronized</h3>
+    <ul>
+        <li>
+            Zoom
+        </li>
+        <li>
+            Home
+        </li>
+        <li>
+            Rotate
+        </li>
+        <li>
+            Pan
+        </li>
+    </ul>
+</body>
+
+</html>
