@@ -79,6 +79,18 @@
                 if (document.getElementsByName('option')[1].checked === true) {
                     lStack = true;
                     v2.viewport.zoomTo((v1.viewport.getZoom() / oldV1ZoomVal) * oldV2ZoomVal);
+                    dX = v1.viewport.getCenter().x - oldV1PanaVal.x;
+                    dY = v1.viewport.getCenter().y - oldV1PanaVal.y;
+                    let dPoint = new OpenSeadragon.Point(dX, dY).rotate(
+                        v1.viewport.getRotation() - v2.viewport.getRotation()
+                    );
+
+                    let pos = new OpenSeadragon.Point(
+                        oldV1PanaVal.x + dPoint.x,
+                        oldV1PanaVal.y + dPoint.y
+                    );
+
+                    v2.viewport.panTo(pos);
                     lStack = false;
                 }
             });
@@ -88,6 +100,20 @@
                 if (document.getElementsByName('option')[1].checked === true) {
                     rStack = true;
                     v1.viewport.zoomTo((v2.viewport.getZoom() / oldV2ZoomVal) * oldV1ZoomVal);
+
+                    dX = v2.viewport.getCenter().x - oldV2PanaVal.x;
+                    dY = v2.viewport.getCenter().y - oldV2PanaVal.y;
+                    let dPoint = new OpenSeadragon.Point(dX, dY).rotate(
+                        v1.viewport.getRotation() - v2.viewport.getRotation()
+                    );
+
+                    let pos = new OpenSeadragon.Point(
+                        oldV2PanaVal.x + dPoint.x,
+                        oldV2PanaVal.y + dPoint.y
+                    );
+
+                    v1.viewport.panTo(pos);
+
                     rStack = false;
                 }
             });
