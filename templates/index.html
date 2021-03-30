@@ -16,8 +16,10 @@
     <input type="radio" name="option" style="margin: 10px" onclick="init()" checked="checked">Independent</input>
     <input type="radio" name="option" style="margin: 10px" onclick="init()">Sync</input> <br>
     <script>
+        
         document.getElementsByName("option")[0].checked = true;
     </script>
+    <!-- <button type="submit" onclick="change();">Debug Mode</button> -->
 
 
 
@@ -30,6 +32,66 @@
         <div id="v1" style="width: 600px; height: 381px;justify-self: center; border-style: solid" class="column"></div>
         <div id="v2" style="width: 600px; height: 381px;justify-self: center; border-style: solid" class="column"></div>
         <script type="text/javascript">
+            var value = false;
+            function change() {
+                value = !value;
+                v1.debugMode = value;
+                v1.destroy();
+                v1 = OpenSeadragon({
+                id: "v1",
+                prefixUrl: "{{ url_for('static', filename='/openseadragon/images/') }}",
+                tileSources: "{{ url_for('static', filename='images/1/outdir.dzi') }}",
+                degrees: 0,
+                //tileSources: cells,
+                debugMode: value,
+                showRotationControl: true,
+                getstureSettingsTouch: {
+                    pinchRotate: true
+                }
+            });
+
+                v2.debugMode = value;
+                v2.destroy();
+                v2 = OpenSeadragon({
+                id: "v2",
+                prefixUrl: "{{ url_for('static', filename='/openseadragon/images/') }}",
+                tileSources: "{{ url_for('static', filename='images/1/outdir.dzi') }}",
+                degrees: 0,
+                //tileSources: cells,
+                debugMode: value,
+                showRotationControl: true,
+                getstureSettingsTouch: {
+                    pinchRotate: true
+                }
+            });
+
+
+                //v1.forceRedraw();
+                v1.addControl(b1.element, { anchor: OpenSeadragon.ControlAnchor.TOP_LEFT });
+                v2.addControl(b2.element, { anchor: OpenSeadragon.ControlAnchor.TOP_LEFT });
+                add_handlers();
+                return value;
+            }
+
+            let b1 = new OpenSeadragon.Button({
+                tooltip: 'Patches',
+                srcRest: 'https://raw.githubusercontent.com/openseadragon/openseadragon/master/images/button_rest.png',
+                srcGroup: 'https://raw.githubusercontent.com/openseadragon/openseadragon/master/images/button_grouphover.png',
+                srcHover: 'https://raw.githubusercontent.com/openseadragon/openseadragon/master/images/button_hover.png',
+                srcDown: 'https://raw.githubusercontent.com/openseadragon/openseadragon/master/images/button_pressed.png',
+                onClick: change
+            });
+
+            let b2 = new OpenSeadragon.Button({
+                tooltip: 'Patches',
+                srcRest: 'https://raw.githubusercontent.com/openseadragon/openseadragon/master/images/button_rest.png',
+                srcGroup: 'https://raw.githubusercontent.com/openseadragon/openseadragon/master/images/button_grouphover.png',
+                srcHover: 'https://raw.githubusercontent.com/openseadragon/openseadragon/master/images/button_hover.png',
+                srcDown: 'https://raw.githubusercontent.com/openseadragon/openseadragon/master/images/button_pressed.png',
+                onClick: change
+
+            });
+
             function init() {
                 if (document.getElementsByName('option')[1].checked === true) {
                     oldV1ZoomVal = v1.viewport.getZoom();
@@ -40,11 +102,27 @@
                     oldV2PanaVal = v2.viewport.getCenter();
                 }
             }
+            /* const cells = {
+                Image: {
+                xmlns: "http://schemas.microsoft.com/deepzoom/2009",
+                Url: "/openseadragon/images/", //folder with tiles stored as images.
+                Format: "jpg", //format of the tiles
+                Overlap: "1",
+                TileSize: "256",
+                Size: {
+                    Width:  "256",
+                    Height: "256"
+                }
+                }
+            }; */
+  
             var v1 = OpenSeadragon({
                 id: "v1",
                 prefixUrl: "{{ url_for('static', filename='/openseadragon/images/') }}",
                 tileSources: "{{ url_for('static', filename='images/1/outdir.dzi') }}",
                 degrees: 0,
+                //tileSources: cells,
+                debugMode: value,
                 showRotationControl: true,
                 getstureSettingsTouch: {
                     pinchRotate: true
@@ -55,146 +133,163 @@
                 prefixUrl: "{{ url_for('static', filename='/openseadragon/images/') }}",
                 tileSources: "{{ url_for('static', filename='images/1/outdir.dzi') }}",
                 degrees: 0,
+                //tileSources: cells,
+                debugMode:value,
                 showRotationControl: true,
                 getstureSettingsTouch: {
                     pinchRotate: true
                 }
             });
+            v1.addControl(b1.element, { anchor: OpenSeadragon.ControlAnchor.TOP_LEFT });
+            v2.addControl(b2.element, { anchor: OpenSeadragon.ControlAnchor.TOP_LEFT });
 
-            let lStack = false;
-            let rStack = false;
-
-            v1.scalebar({
-                minWidth: 10,
-                pixelsPerMeter: 15000000,
+           /*  v1.addHandler("page", function(data){
+                console.log("here");
+                change();
             });
+            v2.addHandler("page", function(data){
+                change();
+            }); */
 
-            v2.scalebar({
-                minWidth: 10,
-                pixelsPerMeter: 15000000,
-            });
+            function add_handlers(){
 
-            v1.addHandler('zoom', function(event) {
-                if (lStack) return;
-                if (document.getElementsByName('option')[1].checked === true) {
-                    lStack = true;
-                    v2.viewport.zoomTo((v1.viewport.getZoom() / oldV1ZoomVal) * oldV2ZoomVal);
-                    dX = v1.viewport.getCenter().x - oldV1PanaVal.x;
-                    dY = v1.viewport.getCenter().y - oldV1PanaVal.y;
-                    let dPoint = new OpenSeadragon.Point(dX, dY).rotate(
-                        v1.viewport.getRotation() - v2.viewport.getRotation()
-                    );
+            
+                let lStack = false;
+                let rStack = false;
 
-                    let pos = new OpenSeadragon.Point(
-                        oldV1PanaVal.x + dPoint.x,
-                        oldV1PanaVal.y + dPoint.y
-                    );
+                v1.scalebar({
+                    minWidth: 10,
+                    pixelsPerMeter: 15000000,
+                });
 
-                    v2.viewport.panTo(pos);
-                    lStack = false;
-                }
-            });
+                v2.scalebar({
+                    minWidth: 10,
+                    pixelsPerMeter: 15000000,
+                });
 
-            v2.addHandler('zoom', function(event) {
-                /* if (rStack) return; */
-                if (document.getElementsByName('option')[1].checked === true) {
-                    rStack = true;
-                    v1.viewport.zoomTo((v2.viewport.getZoom() / oldV2ZoomVal) * oldV1ZoomVal);
+                v1.addHandler('zoom', function(event) {
+                    if (lStack) return;
+                    if (document.getElementsByName('option')[1].checked === true) {
+                        lStack = true;
+                        v2.viewport.zoomTo((v1.viewport.getZoom() / oldV1ZoomVal) * oldV2ZoomVal);
+                        dX = v1.viewport.getCenter().x - oldV1PanaVal.x;
+                        dY = v1.viewport.getCenter().y - oldV1PanaVal.y;
+                        let dPoint = new OpenSeadragon.Point(dX, dY).rotate(
+                            v1.viewport.getRotation() - v2.viewport.getRotation()
+                        );
 
-                    dX = v2.viewport.getCenter().x - oldV2PanaVal.x;
-                    dY = v2.viewport.getCenter().y - oldV2PanaVal.y;
-                    let dPoint = new OpenSeadragon.Point(dX, dY).rotate(
-                        v1.viewport.getRotation() - v2.viewport.getRotation()
-                    );
+                        let pos = new OpenSeadragon.Point(
+                            oldV1PanaVal.x + dPoint.x,
+                            oldV1PanaVal.y + dPoint.y
+                        );
 
-                    let pos = new OpenSeadragon.Point(
-                        oldV2PanaVal.x + dPoint.x,
-                        oldV2PanaVal.y + dPoint.y
-                    );
+                        v2.viewport.panTo(pos);
+                        lStack = false;
+                    }
+                });
+                //v1.addControl('page', change);
+                v2.addHandler('zoom', function(event) {
+                    /* if (rStack) return; */
+                    if (document.getElementsByName('option')[1].checked === true) {
+                        rStack = true;
+                        v1.viewport.zoomTo((v2.viewport.getZoom() / oldV2ZoomVal) * oldV1ZoomVal);
 
-                    v1.viewport.panTo(pos);
+                        dX = v2.viewport.getCenter().x - oldV2PanaVal.x;
+                        dY = v2.viewport.getCenter().y - oldV2PanaVal.y;
+                        let dPoint = new OpenSeadragon.Point(dX, dY).rotate(
+                            v1.viewport.getRotation() - v2.viewport.getRotation()
+                        );
 
-                    rStack = false;
-                }
-            });
+                        let pos = new OpenSeadragon.Point(
+                            oldV2PanaVal.x + dPoint.x,
+                            oldV2PanaVal.y + dPoint.y
+                        );
 
-            v1.addHandler('home', function(event) {
-                if (lStack) return;
-                if (document.getElementsByName('option')[1].checked === true) {
-                    lStack = true;
-                    v2.viewport.goHome(true);
-                    lStack = false;
-                }
-            });
+                        v1.viewport.panTo(pos);
 
-            v2.addHandler('home', function(event) {
-                if (rStack) return;
-                if (document.getElementsByName('option')[1].checked === true) {
-                    rStack = true;
-                    v1.viewport.goHome(true);
-                    rStack = false;
-                }
-            });
+                        rStack = false;
+                    }
+                });
 
-            v1.addHandler('rotate', function(event) {
-                if (lStack) return;
-                if (document.getElementsByName('option')[1].checked === true) {
-                    lStack = true;
-                    v2.viewport.setRotation(v1.viewport.getRotation());
-                    lStack = false;
-                }
-            });
+                v1.addHandler('home', function(event) {
+                    /* if (lStack) return; */
+                    if (document.getElementsByName('option')[1].checked === true) {
+                        lStack = true;
+                        v2.viewport.goHome(true);
+                        lStack = false;
+                    }
+                });
 
-            v2.addHandler('rotate', function(event) {
-                /* if (rStack) return; */
-                if (document.getElementsByName('option')[1].checked === true) {
-                    rStack = true;
-                    v1.viewport.setRotation(v2.viewport.getRotation());
-                    rStack = false;
-                }
-            });
+                v2.addHandler('home', function(event) {
+                    if (rStack) return;
+                    if (document.getElementsByName('option')[1].checked === true) {
+                        rStack = true;
+                        v1.viewport.goHome(true);
+                        rStack = false;
+                    }
+                });
 
-            v1.addHandler('pan', function(event) {
+                v1.addHandler('rotate', function(event) {
+                    if (lStack) return;
+                    if (document.getElementsByName('option')[1].checked === true) {
+                        lStack = true;
+                        v2.viewport.setRotation(v1.viewport.getRotation());
+                        lStack = false;
+                    }
+                });
 
-                if (document.getElementsByName('option')[1].checked === true) {
-                    lStack = true;
+                v2.addHandler('rotate', function(event) {
+                    /* if (rStack) return; */
+                    if (document.getElementsByName('option')[1].checked === true) {
+                        rStack = true;
+                        v1.viewport.setRotation(v2.viewport.getRotation());
+                        rStack = false;
+                    }
+                });
 
-                    dX = v1.viewport.getCenter().x - oldV1PanaVal.x;
-                    dY = v1.viewport.getCenter().y - oldV1PanaVal.y;
-                    let dPoint = new OpenSeadragon.Point(dX, dY).rotate(
-                        v1.viewport.getRotation() - v2.viewport.getRotation()
-                    );
+                v1.addHandler('pan', function(event) {
 
-                    let pos = new OpenSeadragon.Point(
-                        oldV1PanaVal.x + dPoint.x,
-                        oldV1PanaVal.y + dPoint.y
-                    );
+                    if (document.getElementsByName('option')[1].checked === true) {
+                        lStack = true;
 
-                    v2.viewport.panTo(pos);
-                    lStack = false;
-                }
-            });
+                        dX = v1.viewport.getCenter().x - oldV1PanaVal.x;
+                        dY = v1.viewport.getCenter().y - oldV1PanaVal.y;
+                        let dPoint = new OpenSeadragon.Point(dX, dY).rotate(
+                            v1.viewport.getRotation() - v2.viewport.getRotation()
+                        );
 
-            v2.addHandler('pan', function(event) {
-                if (rStack) return;
-                if (document.getElementsByName('option')[1].checked === true) {
-                    rStack = true;
+                        let pos = new OpenSeadragon.Point(
+                            oldV1PanaVal.x + dPoint.x,
+                            oldV1PanaVal.y + dPoint.y
+                        );
 
-                    dX = v2.viewport.getCenter().x - oldV2PanaVal.x;
-                    dY = v2.viewport.getCenter().y - oldV2PanaVal.y;
-                    let dPoint = new OpenSeadragon.Point(dX, dY).rotate(
-                        v1.viewport.getRotation() - v2.viewport.getRotation()
-                    );
+                        v2.viewport.panTo(pos);
+                        lStack = false;
+                    }
+                });
 
-                    let pos = new OpenSeadragon.Point(
-                        oldV2PanaVal.x + dPoint.x,
-                        oldV2PanaVal.y + dPoint.y
-                    );
+                v2.addHandler('pan', function(event) {
+                    if (rStack) return;
+                    if (document.getElementsByName('option')[1].checked === true) {
+                        rStack = true;
 
-                    v1.viewport.panTo(pos);
-                    lStack = false;
-                }
-            });
+                        dX = v2.viewport.getCenter().x - oldV2PanaVal.x;
+                        dY = v2.viewport.getCenter().y - oldV2PanaVal.y;
+                        let dPoint = new OpenSeadragon.Point(dX, dY).rotate(
+                            v1.viewport.getRotation() - v2.viewport.getRotation()
+                        );
+
+                        let pos = new OpenSeadragon.Point(
+                            oldV2PanaVal.x + dPoint.x,
+                            oldV2PanaVal.y + dPoint.y
+                        );
+
+                        v1.viewport.panTo(pos);
+                        lStack = false;
+                    }
+                });
+            }
+            add_handlers();
         </script>
     </div>
 
