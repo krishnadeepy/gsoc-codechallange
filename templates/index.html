@@ -33,14 +33,39 @@
         <div id="v2" style="width: 600px; height: 381px;justify-self: center; border-style: solid" class="column"></div>
         <script type="text/javascript">
             var value = false;
+            let heatmap = new OpenSeadragon.Button({
+                tooltip: 'Heatmap',
+                srcRest: 'https://raw.githubusercontent.com/openseadragon/openseadragon/master/images/button_rest.png',
+                srcGroup: 'https://raw.githubusercontent.com/openseadragon/openseadragon/master/images/button_grouphover.png',
+                srcHover: 'https://raw.githubusercontent.com/openseadragon/openseadragon/master/images/button_hover.png',
+                srcDown: 'https://raw.githubusercontent.com/openseadragon/openseadragon/master/images/button_pressed.png',
+                onClick: function(){
+                            //document.getElementsByName('option')[1].checked == false;
+                            //v1.removeAllHandlers();
+                            v2.destroy();
+                            v2 = OpenSeadragon({
+                            id: "v2",
+                            prefixUrl: "{{ url_for('static', filename='/openseadragon/images/') }}",
+                            tileSources: "{{ url_for('static', filename='images/mask_hm.dzi') }}",
+                            degrees: 0,
+                            //tileSources: cells,
+                            debugMode: value,
+                            showRotationControl: true,
+                            getstureSettingsTouch: {
+                                pinchRotate: true
+                                }
+                            });
+                            add_handlers();
+                        }
+            });
             function change() {
                 value = !value;
-                v1.debugMode = value;
+                //v1.debugMode = value;
                 v1.destroy();
                 v1 = OpenSeadragon({
                 id: "v1",
                 prefixUrl: "{{ url_for('static', filename='/openseadragon/images/') }}",
-                tileSources: "{{ url_for('static', filename='images/1/outdir.dzi') }}",
+                tileSources: "{{ url_for('static', filename='images/image.dzi') }}",
                 degrees: 0,
                 //tileSources: cells,
                 debugMode: value,
@@ -50,12 +75,12 @@
                 }
             });
 
-                v2.debugMode = value;
+                //v2.debugMode = value;
                 v2.destroy();
                 v2 = OpenSeadragon({
                 id: "v2",
                 prefixUrl: "{{ url_for('static', filename='/openseadragon/images/') }}",
-                tileSources: "{{ url_for('static', filename='images/1/outdir.dzi') }}",
+                tileSources: "{{ url_for('static', filename='images/mask.dzi') }}",
                 degrees: 0,
                 //tileSources: cells,
                 debugMode: value,
@@ -67,12 +92,11 @@
 
 
                 //v1.forceRedraw();
-                v1.addControl(b1.element, { anchor: OpenSeadragon.ControlAnchor.TOP_LEFT });
-                v2.addControl(b2.element, { anchor: OpenSeadragon.ControlAnchor.TOP_LEFT });
+                
                 add_handlers();
                 return value;
             }
-
+            
             let b1 = new OpenSeadragon.Button({
                 tooltip: 'Patches',
                 srcRest: 'https://raw.githubusercontent.com/openseadragon/openseadragon/master/images/button_rest.png',
@@ -119,7 +143,7 @@
             var v1 = OpenSeadragon({
                 id: "v1",
                 prefixUrl: "{{ url_for('static', filename='/openseadragon/images/') }}",
-                tileSources: "{{ url_for('static', filename='images/1/outdir.dzi') }}",
+                tileSources: "{{ url_for('static', filename='images/image.dzi') }}",
                 degrees: 0,
                 //tileSources: cells,
                 debugMode: value,
@@ -131,7 +155,7 @@
             var v2 = OpenSeadragon({
                 id: "v2",
                 prefixUrl: "{{ url_for('static', filename='/openseadragon/images/') }}",
-                tileSources: "{{ url_for('static', filename='images/1/outdir.dzi') }}",
+                tileSources: "{{ url_for('static', filename='images/mask.dzi') }}",
                 degrees: 0,
                 //tileSources: cells,
                 debugMode:value,
@@ -142,6 +166,7 @@
             });
             v1.addControl(b1.element, { anchor: OpenSeadragon.ControlAnchor.TOP_LEFT });
             v2.addControl(b2.element, { anchor: OpenSeadragon.ControlAnchor.TOP_LEFT });
+            v2.addControl(heatmap.element, { anchor: OpenSeadragon.ControlAnchor.TOP_LEFT });
 
            /*  v1.addHandler("page", function(data){
                 console.log("here");
@@ -153,7 +178,7 @@
 
             function add_handlers(){
 
-            
+                v1.removeAllHandlers();
                 let lStack = false;
                 let rStack = false;
 
@@ -214,6 +239,7 @@
                 v1.addHandler('home', function(event) {
                     /* if (lStack) return; */
                     if (document.getElementsByName('option')[1].checked === true) {
+                        //document.getElementsByName('option')[1].checked == false;
                         lStack = true;
                         v2.viewport.goHome(true);
                         lStack = false;
@@ -223,6 +249,7 @@
                 v2.addHandler('home', function(event) {
                     if (rStack) return;
                     if (document.getElementsByName('option')[1].checked === true) {
+                        //document.getElementsByName('option')[1].checked == false;
                         rStack = true;
                         v1.viewport.goHome(true);
                         rStack = false;
@@ -276,7 +303,7 @@
                         dX = v2.viewport.getCenter().x - oldV2PanaVal.x;
                         dY = v2.viewport.getCenter().y - oldV2PanaVal.y;
                         let dPoint = new OpenSeadragon.Point(dX, dY).rotate(
-                            v1.viewport.getRotation() - v2.viewport.getRotation()
+                            v2.viewport.getRotation() - v1.viewport.getRotation()
                         );
 
                         let pos = new OpenSeadragon.Point(
@@ -285,11 +312,19 @@
                         );
 
                         v1.viewport.panTo(pos);
-                        lStack = false;
+                        rStack = false;
                     }
                 });
+
+                v1.addControl(b1.element, { anchor: OpenSeadragon.ControlAnchor.TOP_LEFT });
+                v2.addControl(b2.element, { anchor: OpenSeadragon.ControlAnchor.TOP_LEFT });
+                v2.addControl(heatmap.element, { anchor: OpenSeadragon.ControlAnchor.TOP_LEFT });
             }
             add_handlers();
+
+            
+            v2.addControl(heatmap.element, { anchor: OpenSeadragon.ControlAnchor.TOP_LEFT });
+
         </script>
     </div>
 
